@@ -17,25 +17,19 @@ async def load_and_run_plugins():
         module = importlib.import_module(f"plugins.{plugin}")
         if hasattr(module, f"run_{plugin}_plugin"):
             print(f"Running {plugin} plugin...")
-            await getattr(module, f"run_{plugin}_plugin")()  
+            await getattr(module, f"run_{plugin}_plugin")()
 
 async def main():
     await load_and_run_plugins()
-    while True:
-        await asyncio.sleep(1)  
+    # Infinite wait (Heroku पर stable रहेगा, busy loop नहीं करेगा)
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
     print("Starting clients ...")
     try:
-        loop.run_until_complete(main())
+        asyncio.run(main())   # ✅ Modern asyncio pattern
     except KeyboardInterrupt:
         print("Shutting down...")
     except Exception as e:
-        print(e)
+        print("Error:", e)
         sys.exit(1)
-    finally:
-        try:
-            loop.close()
-        except Exception:
-            pass
